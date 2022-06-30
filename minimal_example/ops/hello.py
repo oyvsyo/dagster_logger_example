@@ -34,7 +34,7 @@ def hello(context):
         res = f.result()
         yield AssetMaterialization(
             asset_key=AssetKey('asset'),
-            metadata={"number": str(res)},
+            metadata={"logger": str(res)},
         )
         context.log.info(f"future done {res}")
 
@@ -50,7 +50,7 @@ def hello(context):
         res = f.result()
         yield AssetMaterialization(
             asset_key=AssetKey('asset'),
-            metadata={"number": str(res)},
+            metadata={"logger": str(res)},
         )
         context.log.info(f"future done {res}")
 

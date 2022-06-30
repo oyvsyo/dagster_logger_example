@@ -1,81 +1,19 @@
-# minimal_example
-
-Welcome to your new Dagster repository.
-
-### Contents
-
-| Name                     | Description                                                                       |
-| ------------------------ | --------------------------------------------------------------------------------- |
-| `README.md`              | A description and guide for this code repository                                  |
-| `setup.py`               | A build script with Python package dependencies for this code repository          |
-| `workspace.yaml`         | A file that specifies the location of the user code for Dagit and the Dagster CLI |
-| `minimal_example/`       | A Python directory that contains code for your Dagster repository                 |
-| `minimal_example_tests/` | A Python directory that contains tests for `minimal_example`                      |
-
-## Getting up and running
-
-1. Create a new Python environment and activate.
-
-**Pyenv**
-```bash
-export PYTHON_VERSION=X.Y.Z
-pyenv install $PYTHON_VERSION
-pyenv virtualenv $PYTHON_VERSION minimal_example
-pyenv activate minimal_example
-```
-
-**Conda**
-```bash
-export PYTHON_VERSION=X.Y.Z
-conda create --name minimal_example python=PYTHON_VERSION
-conda activate minimal_example
-```
-
-2. Once you have activated your Python environment, install your repository as a Python package. By
-using the `--editable` flag, `pip` will install your repository in
-["editable mode"](https://pip.pypa.io/en/latest/reference/pip_install/?highlight=editable#editable-installs)
-so that as you develop, local code changes will automatically apply.
-
-```bash
-pip install --editable .
-```
-
-## Local Development
-
-1. Set the `DAGSTER_HOME` environment variable. Dagster will store run history in this directory.
-
-```base
-mkdir ~/dagster_home
-export DAGSTER_HOME=~/dagster_home
-```
-
-2. Start the [Dagit process](https://docs.dagster.io/overview/dagit). This will start a Dagit web
-server that, by default, is served on http://localhost:3000.
-
-```bash
-dagit
-```
-
-3. (Optional) If you want to enable Dagster
-[Schedules](https://docs.dagster.io/overview/schedules-sensors/schedules) or
-[Sensors](https://docs.dagster.io/overview/schedules-sensors/sensors) for your jobs, start the
-[Dagster Daemon process](https://docs.dagster.io/overview/daemon#main) **in a different shell or terminal**:
-
-```bash
-dagster-daemon run
-```
-
-## Local Testing
-
-Tests can be found in `minimal_example_tests` and are run with the following command:
-
-```bash
-pytest minimal_example_tests
-```
-
-As you create Dagster ops and graphs, add tests in `minimal_example_tests/` to check that your
-code behaves as desired and does not break over time.
-
-For hints on how to write tests for ops and graphs in Dagster,
-[see our documentation tutorial on Testing](https://docs.dagster.io/tutorial/testable).
 # dagster_logger_example
+
+This project aims to recreate some unpredictable behaviour of dagster.
+Project was generated from `dagster new-project`. Dagster version is `0.15.2`.
+
+Here im trying to do some work in parallel with `concurrent.futures.ThreadPoolExecutor` then when one piece of work done -> yield asset for some sensor.
+The problem is in using a dagster context.log invocation inside `concurrent.futures.Future` - it's preventing asset materialisation.
+
+In `minimal_example/ops/hello` there is `hello` op that recreates a problem. There is 2 parts:
+ - try to execute `work` function for 3 times supplying `context.log` to it, but not using `log`. 
+ - try to do the same with `work_logger` function that will log messages by calling `logger.info`
+
+on every future Im waiting for result and when it's ready - yielding some asset materialisation.
+For the first step all ok - there will be 3 assets events. But for second step - only one asset on the end.
+
+This happens when running on `dagit` or with command line `dagster job execute -f minimal_example/jobs/say_hello.py`. 
+Hovewer, when testing events by pytests - there are 6 `ASSET_MATERIALIZATION` events in event stream
+(running test: `pytest minimal_example_tests/test_grap
+hs/test_say_hello.py -vv`)
