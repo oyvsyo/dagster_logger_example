@@ -1,4 +1,5 @@
 import time
+import logging
 from concurrent.futures import ThreadPoolExecutor
 from dagster import op, AssetMaterialization, AssetKey, Nothing, Out
 
@@ -41,8 +42,10 @@ def hello(context):
     context.log.warning("Starting jobs with logger in futures")
 
     futures = []
+
+    logger = logging.getLogger('my_logger')
     for i in range(3):
-        f = executor.submit(work_logger, i, context.log)
+        f = executor.submit(work_logger, i, logger)
         futures.append(f)
 
     for f in futures:
