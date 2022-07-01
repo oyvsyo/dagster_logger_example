@@ -1,0 +1,12 @@
+# distribution
+/dist
+/build
+/*.egg-info
+venv
+
+# python
+__pycache__/
+
+# dagster_home
+dagster_home/*
+!dagster_home/dagster.yaml
