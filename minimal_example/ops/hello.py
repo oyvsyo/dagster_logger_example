@@ -4,13 +4,13 @@ from dagster import op, AssetMaterialization, AssetKey, Nothing, Out
 
 
 def work(i: int, logger) -> int:
-    time.sleep(3)
+    time.sleep(30)
     return logger
 
 
 def work_logger(i: int, logger) -> int:
     logger.info(f'working {i}')
-    time.sleep(3)
+    time.sleep(30)
     return logger
 
 
