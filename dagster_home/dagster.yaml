@@ -1,6 +1,0 @@
-python_logs:
-  managed_python_loggers:
-    - my_logger
-
-telemetry:
-      enabled: false

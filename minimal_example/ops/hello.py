@@ -1,17 +1,16 @@
 import time
-import logging
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait
 from dagster import op, AssetMaterialization, AssetKey, Nothing, Out
 
 
 def work(i: int, logger) -> int:
-    time.sleep(30)
+    time.sleep(5)
     return logger
 
 
 def work_logger(i: int, logger) -> int:
     logger.info(f'working {i}')
-    time.sleep(30)
+    time.sleep(5)
     return logger
 
 
@@ -43,18 +42,20 @@ def hello(context):
 
     futures = []
 
-    logger = logging.getLogger('my_logger')
     for i in range(3):
-        f = executor.submit(work_logger, i, logger)
+        f = executor.submit(work_logger, i, context.log)
         futures.append(f)
 
-    for f in futures:
-        context.log.info(f"waiting future done")
-        res = f.result()
-        yield AssetMaterialization(
-            asset_key=AssetKey('asset'),
-            metadata={"logger": str(res)},
-        )
-        context.log.info(f"future done {res}")
+    not_done = futures
+    while len(not_done) > 0:
+        freshly_done, not_done = wait(not_done, timeout=1)
+
+        for f in freshly_done:
+            res = f.result()
+            yield AssetMaterialization(
+                asset_key=AssetKey('asset'),
+                metadata={"logger": str(res)},
+            )
+            context.log.info(f"future done {res}")
 
     return Nothing
